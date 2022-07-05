@@ -1,0 +1,72 @@
+service: order-process
+frameworkVersion: "3"
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  tableNameOrder: "order-process-${self:custom.stage}"
+  dynamodb:
+    start:
+      migrate: true
+
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [OrdersTable, Arn]
+  environment:
+    ORDER_PROCESS_TABLE: ${self:custom.tableNameOrder}
+
+functions:
+  orderProcess:
+    handler: handler/orderHandler.handler
+    events:
+      - http:
+          method: GET
+          path: /order-process/{id}
+      - http:
+          method: GET
+          path: /order-process/product/{valor}
+      - http:
+          method: POST
+          path: /order-process
+      - http:
+          method: PUT
+          path: /order-process
+  apiDocs:
+    handler: handler/swaggerHandler.doc
+    events:
+      - http:
+         method: ANY
+         path: /api-docs 
+  hello:
+    handler: handler/orderHandler.handler
+    events:
+      - http: "GET /hello"
+resources:
+  Resources:
+    OrdersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: orderId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: orderId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${self:custom.tableNameOrder}
