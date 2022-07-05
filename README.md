@@ -1,2 +1,2 @@
-# orden-iron-work
-Repo de getionde ordenes
+# order-iron-work
+Repo de gestion de ordenes
