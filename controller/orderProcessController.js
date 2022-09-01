@@ -3,10 +3,8 @@ const createHTTPError = require("http-errors");
 const log = require("serverless-logger")("orderProcessController.js");
 const orderProcessServices = require("../services/orderProcessServices");
 
-
-const getOrderProcess = async (req = request, res = response , next) => {
+const getOrderProcess = async (req = request, res = response, next) => {
   const param = req.params.id;
-
 
   log("Get order by : ", param);
   try {
@@ -54,11 +52,15 @@ const saveOrderProcess = async (req, res = response, next) => {
   try {
     const body = req.body;
     const order = await orderProcessServices.saveOrderProcess(body);
-   
 
-
-    res.status(200).send({ order });
+    res.status(200).send({ "order-process": order });
   } catch (error) {
+    
+    
+    if (error.statusCode == 400) {
+      log("Error", error);
+    }
+  
     res.status(500).send(createHTTPError(500, error));
   }
 };
@@ -68,7 +70,7 @@ const updateOrderProcess = async (req, res = response, next) => {
     const body = req.body;
     const order = await orderProcessServices.updateOrderProcess(body);
 
-    res.status(200).send({ order });
+    res.status(200).send({ "order-process": order });
   } catch (error) {
     res.status(500).send(createHTTPError(500, error));
   }

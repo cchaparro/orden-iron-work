@@ -7,9 +7,11 @@
   },
   "dependencies": {
     "aws-serverless-swagger-ui": "^1.0.1",
+    "dynamoose": "^2.8.5",
     "express": "^4.18.1",
     "express-joi-validation": "^5.0.1",
     "http-errors": "^2.0.0",
+    "mysql": "^2.18.1",
     "serverless-http": "^2.7.0",
     "serverless-logger": "^1.2.0",
     "swagger-ui-express": "^4.4.0"

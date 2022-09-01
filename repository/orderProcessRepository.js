@@ -1,62 +1,35 @@
-const AWS = require("aws-sdk");
-const log = require("serverless-logger")("orderProcessRepository.js");
+const dynamoose = require("dynamoose");
+const { OrderModel } = require("../repository/schema/orderSchema");
 
-const ORDER_PROCESS_TABLE = process.env.ORDER_PROCESS_TABLE;
+const log = require("serverless-logger")("orderProcessRepository.js");
 const IS_OFFLINE = process.env.IS_OFFLINE;
-let dynamoDbClient;
 
 if (IS_OFFLINE === "true") {
-  dynamoDbClient = new AWS.DynamoDB.DocumentClient({
-    region: "localhost",
-    endpoint: "http://localhost:8000",
-  });
-} else {
-  dynamoDbClient = new AWS.DynamoDB.DocumentClient();
+  dynamoose.aws.ddb.local("http://localhost:8000");
 }
 
 const getOrderProcess = async (code) => {
-  const params = {
-    TableName: ORDER_PROCESS_TABLE,
-    Key: {
-      orderId: code,
-    },
-  };
-
-  const results = await dynamoDbClient.get(params).promise();
-  return results.Item;
+  const results = await OrderModel.get(code);
+  return results;
 };
 
-const getScanOrderProcess = async (key,valor) => {
-  const params = {
-    TableName : ORDER_PROCESS_TABLE,
-    FilterExpression : key+' = :valor',
-    ExpressionAttributeValues : {':valor' : valor}
-  };
-  log("Get order scan:" ,params);
-  const results = await dynamoDbClient.scan(params).promise();
+const getScanOrderProcess = async (key, valor) => {
+  log("Get order scan:", key ,valor );
+  const results = await OrderModel.scan(key).contains(valor).exec();
   return results;
 };
 
 const saveOrderProcess = async (order) => {
   log("Save order ", order);
+  const orderSave = await OrderModel.create(order);
 
-  const params = {
-    TableName: ORDER_PROCESS_TABLE,
-    Item :order
-  };
-
-  await dynamoDbClient.put(params).promise();
-  return params.Item;
+  return orderSave;
 };
 
 const updateOrderProcess = async (order) => {
-  const params = {
-    TableName: ORDER_PROCESS_TABLE,
-    Item: order
-  };
+  const orderSave = await OrderModel.update(order);
 
-  await dynamoDbClient.update(params).promise();
-  return params.Item;
+  return orderSave;
 };
 
 module.exports = {
